@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://kubernetes.io/images/kubernetes-horizontal-color.png" alt="Kubernetes" width="300"/>
+  <img src="img/kubog.png" alt="Kubernetes" width="300"/>
 </p>
 
-<h1 align="center">⚙️ mcp-server-kopf</h1>
+<h1 align="center">⚙️ mcp-server-kubog</h1>
 
 <p align="center">
   <strong>A Kubernetes SRE MCP Server with real-time crash monitoring powered by KOPF</strong>
