@@ -39,7 +39,7 @@ Connect it to any MCP-compatible client (Claude Desktop, Cursor, custom agents) 
 
 ## Why KOPF Instead of kubectl?
 
-Projects like [mcp-server-kubernetes](https://github.com/stophobia/mcp-server-kubernetes) give AI assistants Kubernetes access by shelling out to `kubectl` under the hood. This works, but it has significant limitations. **mcp-server-kopf** takes a fundamentally different approach by using the **Kubernetes Python client** for API calls and **KOPF** for real-time event watching.
+Projects like [mcp-server-kubernetes](https://pypi.org/project/mcp-kubernetes-server) give AI assistants Kubernetes access by shelling out to `kubectl` under the hood. This works, but it has significant limitations. **mcp-server-kopf** takes a fundamentally different approach by using the **Kubernetes Python client** for API calls and **KOPF** for real-time event watching.
 
 | | **kubectl-based servers** | **mcp-server-kopf** |
 |---|---|---|
@@ -74,8 +74,8 @@ Projects like [mcp-server-kubernetes](https://github.com/stophobia/mcp-server-ku
 ┌─────────────────────▼────────────────────────────────┐
 │                   main.py                            │
 │  ┌──────────────┐  ┌─────────────────────────────┐   │
-│  │  FastMCP      │  │  KOPF Background Operator   │   │
-│  │  Server       │  │  (Thread)                   │   │
+│  │  FastMCP     │  │  KOPF Background Operator   │   │
+│  │  Server      │  │  (Thread)                   │   │
 │  │              │  │                             │   │
 │  │  45 Tools    │  │  Watches pod status fields  │   │
 │  │  registered  │◄─┤  Populates cluster_alerts   │   │
