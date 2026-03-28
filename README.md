@@ -37,6 +37,32 @@ Connect it to any MCP-compatible client (Claude Desktop, Cursor, custom agents) 
 
 ---
 
+## Why KOPF Instead of kubectl?
+
+Projects like [mcp-server-kubernetes](https://github.com/stophobia/mcp-server-kubernetes) give AI assistants Kubernetes access by shelling out to `kubectl` under the hood. This works, but it has significant limitations. **mcp-server-kopf** takes a fundamentally different approach by using the **Kubernetes Python client** for API calls and **KOPF** for real-time event watching.
+
+| | **kubectl-based servers** | **mcp-server-kopf** |
+|---|---|---|
+| **API interaction** | Shells out to `kubectl` → parses text output | Native Python client → structured objects |
+| **Real-time monitoring** | ❌ Poll-based or absent | ✅ KOPF operator watches events in real-time |
+| **Crash detection** | Manual — must query pods | Automatic — alerts surface the instant a pod crashes |
+| **Error handling** | String parsing of CLI output | Typed exceptions from the Kubernetes API |
+| **Dependency** | Requires `kubectl` binary on the host | No external binaries — pure Python |
+| **Remediation** | Limited to `kubectl` verbs | Direct API patches (scale, restart, rollback, OOM fix) |
+| **Output format** | Raw CLI text (fragile to parse) | Structured, consistent, purpose-built responses |
+| **Extensibility** | Add shell commands | Add Python functions with full API access |
+| **Security** | Arbitrary command execution risk | Scoped API calls — no shell injection surface |
+| **Closed-loop SRE** | ❌ Detect and diagnose only | ✅ Detect → diagnose → remediate in one conversation |
+
+### Key Advantages
+
+- **🔴 Proactive, not reactive** — The KOPF background operator continuously watches pod status. Crash alerts exist *before* you even ask. With kubectl-based servers, the AI has to explicitly run commands to discover problems.
+- **🔒 No shell, no risk** — kubectl-based tools execute arbitrary shell commands, which introduces injection risks and requires the binary to be installed. This server uses only the official Kubernetes Python client.
+- **🧱 Structured data** — Instead of parsing `kubectl get pods -o wide` text output (which can break across versions), every tool returns clean, structured strings built from typed API objects.
+- **⚡ Closed-loop remediation** — Beyond observation, the server can *act*: patch resource limits, trigger rollout restarts, rollback deployments, and cordon nodes — all through safe, scoped API calls.
+
+---
+
 ## Architecture
 
 ```
