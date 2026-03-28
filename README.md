@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="kubog.png" alt="Kubernetes" width="300"/>
+  <img src="kubog.png" alt="Kubernetes" width="1200"/>
 </p>
 
 <h1 align="center">⚙️ mcp-server-kubog</h1>
