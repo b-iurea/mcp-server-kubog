@@ -10,6 +10,7 @@ from kubernetes import client, config
 # Tools modules
 from tools import cluster, workloads, pods, networking, storage
 from tools import rbac, scaling, diagnostics, remediation
+from tools import custom_resources
 from tools import config as config_tools  # avoid clash with kubernetes.config
 
 # ==========================================================================
@@ -84,18 +85,70 @@ def configure_kopf(settings: kopf.OperatorSettings, **_):
 def monitor_pod_crashes(new, name, namespace, **kwargs):
     """Intercept pods in CrashLoopBackOff or OOMKilled in real-time."""
     for status in new or []:
-        state = status.get('lastState', {}).get('terminated', {})
-        reason = state.get('reason')
-        if reason in ['OOMKilled', 'Error', 'CrashLoopBackOff']:
-            alert_id = f"{namespace}/{name}"
+        state = status.get('state', {})
+        last_state = status.get('lastState', {})
+        
+        # Check current waiting state (for CrashLoopBackOff, ErrImagePull, Probe failures)
+        waiting = state.get('waiting', {})
+        w_reason = waiting.get('reason')
+        if w_reason in ['CrashLoopBackOff', 'CreateContainerConfigError', 'CreateContainerError', 'ErrImagePull', 'ImagePullBackOff', 'InvalidImageName']:
+            alert_id = f"pod:{namespace}/{name}"
             cluster_alerts[alert_id] = {
+                "type": "PodAlert",
                 "pod": name,
                 "namespace": namespace,
-                "reason": reason,
-                "exit_code": state.get('exitCode'),
-                "message": state.get('message', 'No additional message'),
+                "reason": w_reason,
+                "exit_code": "N/A",
+                "message": waiting.get('message', 'No additional message'),
             }
-            logger.warning(f"ALERT: {name} in {namespace} crashed — {reason}")
+            logger.warning(f"ALERT: {name} in {namespace} is waiting — {w_reason}")
+
+        # Check termination reasons
+        terminated = last_state.get('terminated', {})
+        t_reason = terminated.get('reason')
+        if t_reason in ['OOMKilled', 'Error', 'ContainerCannotRun']:
+            alert_id = f"pod:{namespace}/{name}"
+            cluster_alerts[alert_id] = {
+                "type": "PodAlert",
+                "pod": name,
+                "namespace": namespace,
+                "reason": t_reason,
+                "exit_code": terminated.get('exitCode'),
+                "message": terminated.get('message', 'No additional message'),
+            }
+            logger.warning(f"ALERT: {name} in {namespace} crashed — {t_reason}")
+
+@kopf.on.field('v1', 'nodes', field='status.conditions')
+def monitor_node_conditions(new, name, **kwargs):
+    """Intercept node distress conditions like MemoryPressure or NotReady."""
+    for condition in new or []:
+        ctype = condition.get('type')
+        cstatus = condition.get('status')
+        
+        # Usually format is 'True' or 'False' as strings
+        is_bad = False
+        message = condition.get('message', 'No message')
+        
+        if ctype == 'Ready' and cstatus == 'False':
+            is_bad = True
+        elif ctype in ['MemoryPressure', 'DiskPressure', 'PIDPressure', 'NetworkUnavailable'] and cstatus == 'True':
+            is_bad = True
+            
+        if is_bad:
+            alert_id = f"node:{name}"
+            cluster_alerts[alert_id] = {
+                "type": "NodeAlert",
+                "node": name,
+                "reason": ctype,
+                "message": message,
+            }
+            logger.warning(f"ALERT: Node {name} is in bad state — {ctype}: {message}")
+        else:
+            # Clear it if it recovered
+            alert_id = f"node:{name}"
+            if alert_id in cluster_alerts and cluster_alerts[alert_id].get('reason') == ctype:
+                del cluster_alerts[alert_id]
+                logger.info(f"Node {name} recovered from {ctype}")
 
 
 def run_kopf():
@@ -127,6 +180,7 @@ rbac.register(mcp)
 scaling.register(mcp)
 diagnostics.register(mcp, cluster_alerts)
 remediation.register(mcp, cluster_alerts)
+custom_resources.register(mcp)
 
 logger.info("All tool modules registered successfully.")
 

@@ -29,7 +29,7 @@ Connect it to any MCP-compatible client (Claude Desktop, Cursor, custom agents) 
 
 ## Features
 
-- 🔴 **Real-time crash monitoring** — KOPF operator watches `containerStatuses` and raises alerts for `OOMKilled`, `CrashLoopBackOff`, and `Error` states instantly.
+- 🔴 **Real-time crash monitoring** — KOPF operator watches `containerStatuses` and raises alerts for `OOMKilled`, `CrashLoopBackOff`, and `Error` states instantly. 
 - 🛠️ **45 SRE tools** — From cluster overview to active remediation, grouped into logical categories.
 - 🔄 **Read _and_ write operations** — Not just observability: scale deployments, restart workloads, rollback revisions, patch OOM limits, cordon/uncordon nodes.
 - 📡 **MCP-native** — Works out-of-the-box with any MCP client via `stdio` transport.
