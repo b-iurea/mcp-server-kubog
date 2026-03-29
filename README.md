@@ -21,7 +21,7 @@
 
 ## Overview
 
-**mcp-server-kopf** is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives AI assistants deep, real-time access to Kubernetes clusters. Built on [FastMCP](https://github.com/jlowin/fastmcp) and the [Kubernetes Operator Pythonic Framework (KOPF)](https://kopf.readthedocs.io/), it combines **45 read/write tools** across 10 functional categories with a **background crash-loop monitor** that detects `OOMKilled`, `CrashLoopBackOff`, and error states the moment they occur.
+**mcp-server-kopf** is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives AI assistants deep, real-time access to Kubernetes clusters. Built on [FastMCP](https://github.com/jlowin/fastmcp) and the [Kubernetes Operator Pythonic Framework (KOPF)](https://kopf.readthedocs.io/), it combines **50 read/write tools** across 11 functional categories with a **background crash-loop monitor** that detects `OOMKilled`, `CrashLoopBackOff`, and error states the moment they occur.
 
 Connect it to any MCP-compatible client (Claude Desktop, Cursor, custom agents) and let your AI copilot observe, diagnose, and remediate Kubernetes issues without ever leaving the conversation.
 
@@ -30,8 +30,9 @@ Connect it to any MCP-compatible client (Claude Desktop, Cursor, custom agents) 
 ## Features
 
 - 🔴 **Real-time crash monitoring** — KOPF operator watches `containerStatuses` and raises alerts for `OOMKilled`, `CrashLoopBackOff`, and `Error` states instantly. 
-- 🛠️ **45 SRE tools** — From cluster overview to active remediation, grouped into logical categories.
+- 🛠️ **50 SRE tools** — From cluster overview to active remediation, grouped into logical categories.
 - 🔄 **Read _and_ write operations** — Not just observability: scale deployments, restart workloads, rollback revisions, patch OOM limits, cordon/uncordon nodes.
+- 🧠 **Token-Optimized** — Sanitized API responses (removes bloat like `managedFields`), compact YAML serialization, and enforced log truncation to maximize the utility of smaller LLM context windows.
 - 📡 **MCP-native** — Works out-of-the-box with any MCP client via `stdio` transport.
 - 🏗️ **Modular architecture** — Each tool category lives in its own module; easy to extend or customize.
 
@@ -163,6 +164,8 @@ Projects like [mcp-server-kubernetes](https://pypi.org/project/mcp-kubernetes-se
 ### 🩺 Diagnostics
 | Tool | Description |
 |---|---|
+| `generate_cluster_report` | Generate a high-level report of the entire cluster state including nodes, pods and alerts |
+| `get_diagnostic_context` | Gather extensive context for a pod or node to perform Root Cause Analysis |
 | `get_active_alerts` | View real-time crash alerts detected by the KOPF monitor |
 | `get_recent_events` | Retrieve Warning-type events in a namespace |
 | `get_all_events` | Retrieve all recent events (Normal + Warning) |
@@ -177,6 +180,13 @@ Projects like [mcp-server-kubernetes](https://pypi.org/project/mcp-kubernetes-se
 | `rollback_deployment` | Rollback a Deployment to the previous revision |
 | `cordon_node` | Mark a node as unschedulable |
 | `uncordon_node` | Mark a node as schedulable again |
+
+### 🧩 Custom Resources
+| Tool | Description |
+|---|---|
+| `list_crds` | List all Custom Resource Definitions (CRDs) available in the cluster |
+| `list_custom_resources` | List Custom Resources for a specific CRD |
+| `get_custom_resource` | Get the full representation of a specific Custom Resource |
 
 ---
 
@@ -260,7 +270,8 @@ mcp-server-kopf/
 │   ├── rbac.py             # Roles, ClusterRoles, Bindings, ServiceAccounts
 │   ├── scaling.py          # HPAs, manual scaling
 │   ├── diagnostics.py      # Alerts, events, quotas, limit ranges
-│   └── remediation.py      # OOM fix, restart, rollback, cordon/uncordon
+│   ├── remediation.py      # OOM fix, restart, rollback, cordon/uncordon
+│   └── custom_resources.py # CRDs and Custom Resource interactions
 ├── LICENSE                 # Apache 2.0
 └── README.md
 ```
