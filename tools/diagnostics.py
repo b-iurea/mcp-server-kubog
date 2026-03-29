@@ -1,6 +1,7 @@
 """Health and diagnostics tools: alerts, events, resource quotas, limit ranges."""
 
 from kubernetes import client
+from tools.utils import sanitize_for_ai, to_compact_yaml, truncate_logs
 
 
 def register(mcp, cluster_alerts: dict):

@@ -2,6 +2,7 @@
 
 import json
 from kubernetes import client
+from tools.utils import to_compact_yaml
 
 def register(mcp):
     """Register custom resources tools."""
@@ -79,7 +80,7 @@ def register(mcp):
     @mcp.tool()
     def get_custom_resource(group: str, version: str, plural: str, name: str, namespace: str = None) -> str:
         """
-        Get the full JSON representation of a specific Custom Resource.
+        Get the full representation of a specific Custom Resource.
         If the CRD is namespace-scoped, you must provide the namespace.
         """
         try:
@@ -88,7 +89,7 @@ def register(mcp):
             else:
                 obj = custom_api.get_cluster_custom_object(group=group, version=version, plural=plural, name=name)
             
-            # Format nicely as JSON
-            return f"CUSTOM RESOURCE: {name} ({group}/{version}/{plural})\n" + json.dumps(obj, indent=2)
+            # Format nicely as YAML without bloat
+            return f"CUSTOM RESOURCE: {name} ({group}/{version}/{plural})\n" + to_compact_yaml(obj)
         except Exception as e:
             return f"Error fetching custom resource: {e}"
