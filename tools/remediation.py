@@ -11,7 +11,7 @@ def register(mcp, cluster_alerts: dict):
 
     @mcp.tool()
     def fix_oom_resources(pod_name: str, namespace: str, new_memory_limit: str) -> str:
-        """Fix OOMKilled by finding the owning Deployment and patching memory limits. Format: '256Mi', '1Gi'."""
+        """Patch the memory limits on the owning Deployment of a given pod. Useful after memory-related crashes. Format: '256Mi', '1Gi'."""
         try:
             pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
             owner = pod.metadata.owner_references[0]

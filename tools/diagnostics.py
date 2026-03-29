@@ -9,7 +9,7 @@ def register(mcp, cluster_alerts: dict):
 
     @mcp.tool()
     def get_active_alerts() -> str:
-        """Return critical alerts (OOMKilled, CrashLoop) detected recently by the background monitor."""
+        """Check if the background monitor has captured any pod crash alerts. Returns a list or an all-clear message."""
         if not cluster_alerts:
             return "✅ Cluster is stable. No critical alerts detected recently."
         report = "🚨 CRITICAL ALERTS DETECTED:\n"
@@ -22,7 +22,7 @@ def register(mcp, cluster_alerts: dict):
 
     @mcp.tool()
     def get_recent_events(namespace: str = "default") -> str:
-        """Retrieve the most recent Warning events in a namespace."""
+        """List the most recent Warning-type Kubernetes events in a namespace."""
         try:
             events = v1.list_namespaced_event(namespace=namespace, field_selector="type=Warning")
             if not events.items:
